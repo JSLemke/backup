@@ -7,7 +7,7 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
+# Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
@@ -26,23 +26,9 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directories
 node_modules/
 jspm_packages/
-
-# Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
 # TypeScript cache
@@ -51,10 +37,8 @@ web_modules/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
+# Optional eslint and stylelint cache
 .eslintcache
-
-# Optional stylelint cache
 .stylelintcache
 
 # Microbundle cache
@@ -79,7 +63,7 @@ web_modules/
 .env.production.local
 .env.local
 
-# parcel-bundler cache (https://parceljs.org/)
+# parcel-bundler cache
 .cache
 .parcel-cache
 
@@ -128,10 +112,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-# Firebase server configuration
-my-firebase-auth-server/serviceAccountKey.json
-my-firebase-auth-server/.env
 
 # Supabase configuration
 my-supabase-auth-server/.env

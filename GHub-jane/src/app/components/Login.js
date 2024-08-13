@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { supabase } from '../../../my-supabase-auth-server/supabase';  // Pfad anpassen
+import { supabase } from '../../utils/supabaseClient';  // Korrekte Pfad
+
 
 export default function Login() {
   const [email, setEmail] = useState('');

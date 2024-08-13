@@ -1,7 +1,6 @@
 // src/app/components/Notifications.js
 import { useEffect, useState } from 'react';
 import { db } from '../../supabase';
-import { collection, onSnapshot } from 'firebase/firestore';
 
 const Notifications = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);

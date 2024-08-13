@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import supabase from '../../utils/supabaseClient'; // Richtiger Importpfad
+// src/app/components/Navbar.js
+import { supabase } from '../../utils/supabaseClient';
+
 import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
