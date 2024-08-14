@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../my-supabase-auth-server/supabase.js';
+import supabase from '../../utils/supabaseClient'; // Korrekte Importpfad für Supabase
 import Picker from 'emoji-picker-react';
 
 export default function ChatPage() {

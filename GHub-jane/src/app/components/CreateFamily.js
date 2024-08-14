@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient'; // Richtiger Importpfad für Supabase
-import { generateFamilyCode } from '../../utils/family';
-import { registerUser } from '../../utils/auth';
+import { generateAndAssignFamilyCode } from '../../utils/family';
+import { signUp } from '../../utils/auth';
 
 export default function CreateFamily() {
   const [familyName, setFamilyName] = useState('');
@@ -16,11 +16,13 @@ export default function CreateFamily() {
 
   const handleCreateFamily = async () => {
     try {
-      const generatedCode = await generateFamilyCode(familyName);
-      setFamilyCode(generatedCode);
+      const { data: userData, error: signUpError } = await signUp(email, password);
+      if (signUpError) throw signUpError;
 
-      await registerUser(email, password, generatedCode);
-      alert(`Family created with code: ${generatedCode}`);
+      const familyCode = await generateAndAssignFamilyCode(userData.user.id, familyName);
+      setFamilyCode(familyCode);
+
+      alert(`Family created with code: ${familyCode}`);
       router.push('/dashboard');
     } catch (error) {
       setError(error.message);

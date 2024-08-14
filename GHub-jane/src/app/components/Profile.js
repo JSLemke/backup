@@ -1,32 +1,54 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../my-supabase-auth-server/supabase.js';
-
+import supabase from '../../utils/supabaseClient';
 
 export default function Profile() {
   const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = supabase.auth.user();
-      if (user) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
 
-        if (error) console.error('Benutzerdaten nicht gefunden', error.message);
-        else setUserData(data);
+        const user = session?.user;
+        if (user) {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();  // Verwende maybeSingle, um den Fehler zu umgehen
+
+          if (error) {
+            throw new Error('Fehler beim Abrufen der Benutzerdaten: ' + error.message);
+          } else if (!data) {
+            throw new Error('Keine Benutzerdaten gefunden.');
+          } else {
+            setUserData(data);
+          }
+        } else {
+          throw new Error('Kein Benutzer authentifiziert');
+        }
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  if (!userData) {
+  if (loading) {
     return <p>Lade Benutzerdaten...</p>;
+  }
+
+  if (error) {
+    return <p>Fehler: {error}</p>;
   }
 
   return (

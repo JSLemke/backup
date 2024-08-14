@@ -10,68 +10,102 @@ export default function UserDashboard() {
   const [newNote, setNewNote] = useState('');
   const [shoppingItems, setShoppingItems] = useState([]);
   const [newItem, setNewItem] = useState('');
+  const [loading, setLoading] = useState(true);  // Ladezustand hinzufügen
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*');
-      if (!error) setTasks(data);
+    const fetchData = async () => {
+      try {
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('tasks')
+          .select('*');
+        if (tasksError) throw tasksError;
+
+        const { data: notesData, error: notesError } = await supabase
+          .from('notes')
+          .select('*');
+        if (notesError) throw notesError;
+
+        const { data: shoppingData, error: shoppingError } = await supabase
+          .from('shoppingList')
+          .select('*');
+        if (shoppingError) throw shoppingError;
+
+        setTasks(tasksData || []);
+        setNotes(notesData || []);
+        setShoppingItems(shoppingData || []);
+      } catch (err) {
+        console.error('Fehler beim Laden der Daten:', err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);  // Ladezustand deaktivieren
+      }
     };
 
-    const fetchNotes = async () => {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*');
-      if (!error) setNotes(data);
-    };
-
-    const fetchShoppingItems = async () => {
-      const { data, error } = await supabase
-        .from('shoppingList')
-        .select('*');
-      if (!error) setShoppingItems(data);
-    };
-
-    fetchTasks();
-    fetchNotes();
-    fetchShoppingItems();
+    fetchData();
   }, []);
 
   const addTask = async () => {
     if (newTask.trim()) {
-      const { error } = await supabase
-        .from('tasks')
-        .insert({ content: newTask });
-      if (!error) setNewTask('');
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .insert({ content: newTask });
+        if (error) throw error;
+        setNewTask('');
+      } catch (err) {
+        console.error('Fehler beim Hinzufügen der Aufgabe:', err.message);
+      }
     }
   };
 
   const addNote = async () => {
     if (newNote.trim()) {
-      const { error } = await supabase
-        .from('notes')
-        .insert({ content: newNote });
-      if (!error) setNewNote('');
+      try {
+        const { error } = await supabase
+          .from('notes')
+          .insert({ content: newNote });
+        if (error) throw error;
+        setNewNote('');
+      } catch (err) {
+        console.error('Fehler beim Hinzufügen der Notiz:', err.message);
+      }
     }
   };
 
   const addShoppingItem = async () => {
     if (newItem.trim()) {
-      const { error } = await supabase
-        .from('shoppingList')
-        .insert({ content: newItem });
-      if (!error) setNewItem('');
+      try {
+        const { error } = await supabase
+          .from('shoppingList')
+          .insert({ content: newItem });
+        if (error) throw error;
+        setNewItem('');
+      } catch (err) {
+        console.error('Fehler beim Hinzufügen des Artikels:', err.message);
+      }
     }
   };
 
   const deleteItem = async (collectionName, id) => {
-    const { error } = await supabase
-      .from(collectionName)
-      .delete()
-      .eq('id', id);
-    if (error) console.error('Error deleting item:', error.message);
+    try {
+      const { error } = await supabase
+        .from(collectionName)
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Fehler beim Löschen des Elements:', err.message);
+    }
   };
+
+  if (loading) {
+    return <p>Lade das Benutzerdashboard...</p>;  // Ladeanzeige
+  }
+
+  if (error) {
+    return <p>Fehler: {error}</p>;
+  }
 
   return (
     <div className="user-dashboard p-8">
