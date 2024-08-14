@@ -19,6 +19,7 @@
     "invite-code": "^0.0.2",
     "next": "^14.2.5",
     "nodemailer": "^6.9.14",
+    "punycode": "^2.3.1",
     "react": "^18",
     "react-calendar": "^5.0.0",
     "react-dom": "^18",
