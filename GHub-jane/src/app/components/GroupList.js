@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../supabase'; // Korrekte Importpfad für Supabase
+import supabase from '../../utils/supabaseClient'; // Richtiger Importpfad für Supabase
 
 const GroupList = ({ onSelectGroup }) => {
   const [groups, setGroups] = useState([]);

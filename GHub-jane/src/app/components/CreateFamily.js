@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../supabase'; // Korrekte Importpfad für Supabase
+import supabase from '../../utils/supabaseClient'; // Richtiger Importpfad für Supabase
 import { generateFamilyCode } from '../../utils/family';
 import { registerUser } from '../../utils/auth';
 

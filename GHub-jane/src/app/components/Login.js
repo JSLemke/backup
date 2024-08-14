@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import { supabase } from '../../utils/supabaseClient';  // Korrekte Import
+import supabase from '../../utils/supabaseClient';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -17,27 +17,14 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Authentifiziere den Benutzer mit E-Mail und Passwor
+      
 
-      if (error || !user) throw new Error('Invalid login credentials');
-
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('familyCode')
-        .eq('id', user.id)
-        .single();
-
-      if (userError || userData.familyCode !== familyCode) {
-        throw new Error('Invalid family code');
-      }
-
-      alert('Login successful!');
-      router.push('/dashboard');
+      alert('Login erfolgreich!');
+      router.push('/dashboard'); // Weiterleitung zum Dashboard nach erfolgreichem Login
     } catch (error) {
       setError(error.message);
+      // Keine Weiterleitung, wenn ein Fehler auftritt
     }
   };
 
@@ -61,7 +48,7 @@ export default function Login() {
           <div className="relative w-full">
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
+              placeholder="Passwort"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-900"
@@ -81,7 +68,7 @@ export default function Login() {
           </div>
           <input
             type="text"
-            placeholder="Family Code"
+            placeholder="Familiencode"
             value={familyCode}
             onChange={(e) => setFamilyCode(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-700"

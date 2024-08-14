@@ -14,8 +14,18 @@ export default function Register() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const generateFamilyCode = () => {
+    const code = `${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    setFamilyCode(code);
+  };
+
   const handleSignUp = async () => {
     try {
+      if (!familyCode) {
+        throw new Error('Bitte generieren Sie einen Familiencode, bevor Sie sich registrieren.');
+      }
+
+      // Registriere den Benutzer mit Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -24,31 +34,33 @@ export default function Register() {
       if (error) throw error;
 
       const user = data.user;
-      if (!user) throw new Error('User sign-up failed');
+      if (!user) throw new Error('Die Benutzerregistrierung ist fehlgeschlagen');
 
-      const generatedFamilyCode = `${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
+      // Füge den Benutzer in die 'users'-Tabelle ein
       const { error: docError } = await supabase.from('users').insert([
         {
-          id: user.id,
+          id: user.id, // Verwende die von Supabase generierte Benutzer-ID
           email: user.email,
-          familyCode: generatedFamilyCode,
-          createdAt: new Date().toISOString(),
+          familyCode: familyCode, // Verwende den generierten Familiencode
+          createdAt: new Date().toISOString(), // Verwende das aktuelle Datum
+          nickname: '', // Falls es ein Eingabefeld für den Nickname gibt, kannst du diesen hier setzen
         },
       ]);
+
       if (docError) throw docError;
 
-      alert('User and family group created successfully');
-      router.push('/dashboard');
+      alert('Registrierung erfolgreich! Bitte loggen Sie sich jetzt ein.');
+      router.push('/login'); // Weiterleitung zur Login-Seite nach erfolgreicher Registrierung
     } catch (error) {
       setError(error.message);
+      // Stelle sicher, dass keine Weiterleitung erfolgt, wenn ein Fehler auftritt
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen p-4">
       <div className="p-8 max-w-md w-full">
-        <h1 className="text-4xl mb-6 text-center">Register</h1>
+        <h1 className="text-4xl mb-6 text-center">Registrieren</h1>
         <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
           <input
             type="email"
@@ -61,7 +73,7 @@ export default function Register() {
           <div className="relative w-full">
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
+              placeholder="Passwort"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-900"
@@ -81,7 +93,7 @@ export default function Register() {
           </div>
           <input
             type="text"
-            placeholder="Family Name"
+            placeholder="Familienname"
             value={familyName}
             onChange={(e) => setFamilyName(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-700"
@@ -89,14 +101,14 @@ export default function Register() {
           />
           <button
             type="button"
-            onClick={() => setFamilyCode(`${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`)}
+            onClick={generateFamilyCode}
             className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Familiencode generieren
           </button>
           <input
             type="text"
-            placeholder="Generated Family Code"
+            placeholder="Generierter Familiencode"
             value={familyCode}
             onChange={(e) => setFamilyCode(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-500"

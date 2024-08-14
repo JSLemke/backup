@@ -1,4 +1,4 @@
-import { supabase } from '../../my-supabase-auth-server/supabase';
+import supabase from './supabaseClient'; // Verwende den Supabase-Client aus supabaseClient.js
 
 // Funktion zum Generieren und Zuordnen eines Familiencodes zu einem Benutzer
 export const generateAndAssignFamilyCode = async (userId, familyName) => {
@@ -17,11 +17,11 @@ export const generateAndAssignFamilyCode = async (userId, familyName) => {
     throw new Error(`Error generating family code: ${insertError.message}`);
   }
 
-  // Aktualisiere den Benutzer mit dem neuen Familiencode
-  const { error: updateUserError } = await supabase.auth.updateUser({
-    id: userId,
-    data: { familyCode: familyCode },  // Benutzer-Metadaten aktualisieren
-  });
+  // Aktualisiere den Benutzer mit dem neuen Familiencode in der `users` Tabelle
+  const { error: updateUserError } = await supabase
+    .from('users')
+    .update({ familyCode: familyCode })
+    .eq('id', userId);
 
   if (updateUserError) {
     throw new Error(`Error updating user with family code: ${updateUserError.message}`);

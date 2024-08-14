@@ -1,6 +1,6 @@
 'use client';
 
-import { supabase } from '../../supabase'; // Korrekte Importpfad für Supabase
+import supabase from '../../utils/supabaseClient'; // Korrekte Importpfad für Supabase
 import { useRouter } from 'next/navigation';
 import React from 'react';
 

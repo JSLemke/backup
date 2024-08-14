@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import supabase from '../../utils/supabaseClient'; // Richtiger Importpfad
+import supabase from '../../utils/supabaseClient';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -33,15 +33,8 @@ export default function Auth() {
       ]);
       if (docError) throw docError;
 
-      await supabase.from('familyCodes').insert([
-        {
-          familyName: familyName,
-          createdAt: new Date(),
-        },
-      ]);
-
-      alert('User and family group created successfully');
-      router.push('/dashboard');
+      alert('Benutzer und Familiengruppe erfolgreich erstellt');
+      router.push('/login');
     } catch (error) {
       console.error('Error signing up:', error.message);
     }

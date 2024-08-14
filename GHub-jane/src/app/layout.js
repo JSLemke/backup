@@ -3,7 +3,7 @@
 import React from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import './globals.css';  // Importiere globale CSS-Stile
+import './globals.css';
 
 export default function RootLayout({ children }) {
   return (
