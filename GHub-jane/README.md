@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# My Supabase Auth Server
 
-## Getting Started
+## Projektübersicht
+Dies ist ein Node.js-basiertes Projekt, das Express.js und Supabase verwendet, um ein Authentifizierungssystem zu implementieren. Der Server läuft auf `http://localhost:3001` und verbindet sich mit Supabase zur Verwaltung von Benutzern und Familiengruppen.
 
-First, run the development server:
+## Voraussetzungen
+- Node.js (Empfohlene Version: 18.x)
+- npm (Installiert mit Node.js)
+- Git
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Einrichtung
+
+### 1. Repository klonen
+
+git clone <dein-repo-url>
+cd my-supabase-auth-server
+
+2. Abhängigkeiten installieren
+Stelle sicher, dass du dich im richtigen Verzeichnis befindest und führe dann den folgenden Befehl aus:
+
+npm install
+
+3. Umgebungsvariablen einrichten
+Erstelle eine .env-Datei im Verzeichnis my-supabase-auth-server und füge die folgenden Zeilen hinzu:
+
+SUPABASE_URL=https://your-supabase-url.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+4. Server starten
+Starte den Server mit dem folgenden Befehl:
+
+npm start
+
+Der Server sollte auf http://localhost:3001 laufen.
+
+### Verwendung
+## Endpunkte
+POST /createInviteCode: Erzeugt einen Einladungscode für eine Familie.
+POST /joinFamily: Ermöglicht es einem Benutzer, einer Familie über einen Einladungscode beizutreten.
+## Versionskontrolle
+Änderungen committen
+Verwende Git, um alle Änderungen zu committen und zu einem Remote-Repository zu pushen:
+
 ```
+git add .
+git commit -m "Deine Nachricht"
+git push origin main
+```
+### Tagging
+Erstelle Tags, um stabile Versionen zu markieren:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```
+git tag -a v1.0.0 -m "Stable version"
+git push origin v1.0.0
+```
+### Sicherung und Wiederherstellung
+### Regelmäßige Backups
+Projektordner sichern: Erstelle regelmäßige Backups des Projektordners.
+Sichere .env-Dateien an einem sicheren Ort (z.B. verschlüsselter USB-Stick).
+Wiederherstellung
+Wenn du das Projekt neu einrichten musst, klone das Repository und folge den Einrichtungsschritten.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Stabile Entwicklungsumgebung
+### Node.js Version
+Verwende eine stabile Node.js-Version (z.B. 18.x). Wechsle mit nvm zur empfohlenen Version:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+'''
+nvm install 18
+nvm use 18
 
-## Learn More
+'''
 
-To learn more about Next.js, take a look at the following resources:
+Caching und Abhängigkeiten
+Cache leeren: Falls notwendig, lösche Node.js- und Build-Caches:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+npm cache clean --force
+rm -rf node_modules
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Warnungen und Deprecations
+Deprecation Warnungen
+Falls du eine Warnung wie punycode erhältst, ist dies ein Hinweis darauf, dass das Modul veraltet ist. Aktualisiere deine Abhängigkeiten regelmäßig.
 
-## Deploy on Vercel
+npm update
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Falls eine bestimmte Abhängigkeit das Problem verursacht, suche nach einer aktualisierten Version oder einer Alternative.
+
+### Docker (Optional)
+Für eine wiederholbare Entwicklungsumgebung kannst du Docker verwenden. Erstelle eine Dockerfile und eine docker-compose.yml, um deine Umgebung in Containern zu isolieren.
+
+### Fehlerbehebung
+### Bekannte Probleme
+Fehler: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.
+Stelle sicher, dass die .env-Datei korrekt geladen wird und die Umgebungsvariablen gesetzt sind.
+### Nützliche Befehle
+Server starten: npm start
+Abhängigkeiten installieren: npm install
+Versionen verwalten: nvm use 18
+Kontakt und Support
+Falls du Fragen hast oder auf Probleme stößt, kannst du dich jederzeit an das Projektteam wenden oder ein Issue im Repository eröffnen.
