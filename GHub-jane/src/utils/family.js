@@ -4,12 +4,12 @@ import supabase from './supabaseClient'; // Verwende den Supabase-Client aus sup
 export const generateAndAssignFamilyCode = async (userId, familyName) => {
   const familyCode = `${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-  // Füge den neuen Familiencode zur `familyCodes` Tabelle hinzu
+  // Füge den neuen Familiencode zur `families` Tabelle hinzu
   const { error: insertError } = await supabase
-    .from('familyCodes')
+    .from('families')
     .insert({
-      familyName: familyName,
       familyCode: familyCode,
+      createdBy: userId,
       createdAt: new Date(),
     });
 

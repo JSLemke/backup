@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useSupabase } from '../../utils/supabaseClient';
 
 export default function UserCard({ user }) {
     if (!user) {
