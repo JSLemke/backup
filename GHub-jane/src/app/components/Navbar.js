@@ -8,8 +8,6 @@ export default function Navbar() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [familyCode, setFamilyCode] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -17,7 +15,8 @@ export default function Navbar() {
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
-          throw new Error('Error fetching session: ' + error.message);
+          console.error('Error fetching session:', error.message);
+          return;
         }
 
         if (session) {
@@ -29,7 +28,7 @@ export default function Navbar() {
             .single();
 
           if (userError) {
-            throw new Error('Error fetching user data: ' + userError.message);
+            console.error('Error fetching user data:', userError.message);
           } else {
             setUserName(data.nickname || user.email);
             setFamilyCode(data.familyCode || 'N/A');
@@ -37,11 +36,8 @@ export default function Navbar() {
         } else {
           console.log('No user is logged in');
         }
-      } catch (err) {
-        console.error('Unexpected error fetching session:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        console.error('Unexpected error fetching session:', error);
       }
     };
 
@@ -49,23 +45,13 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error logging out:', error.message);
+    } else {
       router.push('/');
-    } catch (err) {
-      console.error('Error logging out:', err.message);
     }
   };
-
-  if (loading) {
-    return <p>Lade Navigation...</p>;
-  }
-
-  if (error) {
-    return <p>Fehler: {error}</p>;
-  }
 
   return (
     <nav className="bg-white p-4 shadow-md flex justify-between items-center">

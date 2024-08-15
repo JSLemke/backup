@@ -12,6 +12,9 @@ export default function Sidebar({ setCurrentPage }) {
                 <a onClick={() => setCurrentPage('profile')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
                     Profil
                 </a>
+                <a onClick={() => setCurrentPage('profileEdit')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
+                    Profil Bearbeiten
+                </a>
                 <a onClick={() => setCurrentPage('chat')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
                     Chat
                 </a>
@@ -26,6 +29,15 @@ export default function Sidebar({ setCurrentPage }) {
                 </a>
                 <a onClick={() => setCurrentPage('gps')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
                     GPS
+                </a>
+                <a onClick={() => setCurrentPage('settings')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
+                    Dashboard Bearbeiten
+                </a>
+                <a onClick={() => setCurrentPage('familyMembers')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
+                    Familienmitglieder
+                </a>
+                <a onClick={() => setCurrentPage('invite')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
+                    Einladen
                 </a>
             </nav>
         </div>
