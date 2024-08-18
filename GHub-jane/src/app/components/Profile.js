@@ -22,29 +22,23 @@ export default function Profile() {
           throw new Error('Benutzer-ID ist undefiniert oder Benutzer ist nicht angemeldet.');
         }
 
+        // Abrufen der Benutzerdaten aus der Datenbank
         const { data, error } = await supabase
           .from('users')
-          .select('*')
+          .select('nickname, bio, email, photo_url')
           .eq('id', user.id)
-          .limit(1);  // Begrenzen der Ergebnisse auf eine Zeile
+          .single();
 
         if (error) {
           throw new Error(`Fehler beim Abrufen der Benutzerdaten: ${error.message}`);
         }
 
-        if (data.length === 0) {
-          throw new Error('Keine Benutzerdaten gefunden.');
-        }
-
-        const userData = data[0];  // Zugriff auf das erste Element im Array
-
         setUserData({
-          displayName: userData.nickname || 'Kein Nickname',
-          photoURL: userData.photo_url || '/default-profile.png',
-          email: userData.email,
-          bio: userData.bio || 'Keine Bio hinterlegt',
+          displayName: data.nickname || 'Kein Nickname',
+          photoURL: data.photo_url || '/default-profile.png',
+          email: data.email,
+          bio: data.bio || 'Keine Bio hinterlegt',
         });
-
       } catch (err) {
         setError(err.message);
       } finally {

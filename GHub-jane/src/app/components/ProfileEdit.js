@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import supabase from '../../utils/supabaseClient';
 
@@ -9,11 +7,12 @@ export default function ProfileEdit() {
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError) {
         console.error('Fehler beim Abrufen des Benutzers', userError.message);
         return;
@@ -25,14 +24,14 @@ export default function ProfileEdit() {
           .select('*')
           .eq('id', user.id)
           .single();
-          
+
         if (error) {
           console.error('Benutzerdaten nicht gefunden', error.message);
         } else {
-          setNickname(data.nickname);
-          setPhotoURL(data.photo_url);
-          setEmail(data.email);
-          setBio(data.bio);
+          setNickname(data.nickname || '');
+          setPhotoURL(data.photo_url || '');
+          setEmail(data.email || '');
+          setBio(data.bio || '');
         }
       }
     };
@@ -45,10 +44,12 @@ export default function ProfileEdit() {
   };
 
   const handleSave = async () => {
+    setLoading(true);  // Setze den Ladezustand auf true
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError) {
       console.error('Fehler beim Abrufen des Benutzers', userError.message);
+      setLoading(false);
       return;
     }
 
@@ -61,10 +62,11 @@ export default function ProfileEdit() {
 
       if (error) {
         console.error('Fehler beim Hochladen des Bildes', error.message);
+        setLoading(false);
         return;
       }
 
-      uploadedPhotoURL = `${supabase.storageUrl}/profile-pictures/public/${user.id}/${file.name}`;
+      uploadedPhotoURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${user.id}/${file.name}`;
     }
 
     if (user) {
@@ -74,16 +76,18 @@ export default function ProfileEdit() {
           nickname,
           photo_url: uploadedPhotoURL,
           email,
-          bio
+          bio,
         })
         .eq('id', user.id);
-        
+
       if (error) {
         console.error('Fehler beim Speichern des Profils', error.message);
       } else {
         alert('Profil erfolgreich aktualisiert');
+        console.log('Profil erfolgreich gespeichert', { nickname, email, bio, uploadedPhotoURL });
       }
     }
+    setLoading(false);  // Ladezustand wieder auf false setzen
   };
 
   return (
@@ -123,8 +127,9 @@ export default function ProfileEdit() {
         <button
           onClick={handleSave}
           className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600"
+          disabled={loading}  // Deaktivieren Sie die Schaltfläche während des Ladens
         >
-          Speichern
+          {loading ? 'Speichern...' : 'Speichern'}
         </button>
       </div>
     </div>
