@@ -21,7 +21,7 @@ export default function ProfileEdit() {
       if (user) {
         const { data, error } = await supabase
           .from('users')
-          .select('*')
+          .select('nickname, photo_url, email, bio')
           .eq('id', user.id)
           .single();
 
@@ -44,7 +44,7 @@ export default function ProfileEdit() {
   };
 
   const handleSave = async () => {
-    setLoading(true);  // Setze den Ladezustand auf true
+    setLoading(true);
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError) {
@@ -56,17 +56,29 @@ export default function ProfileEdit() {
     let uploadedPhotoURL = photoURL;
 
     if (file) {
-      const { data, error } = await supabase.storage
+      const fileName = `${user.id}/${file.name}`;
+      const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
-        .upload(`public/${user.id}/${file.name}`, file);
+        .upload(fileName, file);
 
-      if (error) {
-        console.error('Fehler beim Hochladen des Bildes', error.message);
+      if (uploadError) {
+        console.error('Fehler beim Hochladen des Bildes', uploadError.message);
         setLoading(false);
         return;
       }
 
-      uploadedPhotoURL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-pictures/public/${user.id}/${file.name}`;
+      const { publicURL, error: urlError } = await supabase
+        .storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      if (urlError) {
+        console.error('Fehler beim Abrufen der Bild-URL', urlError.message);
+        setLoading(false);
+        return;
+      }
+
+      uploadedPhotoURL = publicURL;
     }
 
     if (user) {
@@ -84,10 +96,10 @@ export default function ProfileEdit() {
         console.error('Fehler beim Speichern des Profils', error.message);
       } else {
         alert('Profil erfolgreich aktualisiert');
-        console.log('Profil erfolgreich gespeichert', { nickname, email, bio, uploadedPhotoURL });
+        setPhotoURL(uploadedPhotoURL);  // Aktualisiere die photoURL im Zustand
       }
     }
-    setLoading(false);  // Ladezustand wieder auf false setzen
+    setLoading(false);
   };
 
   return (
@@ -127,7 +139,7 @@ export default function ProfileEdit() {
         <button
           onClick={handleSave}
           className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={loading}  // Deaktivieren Sie die Schaltfläche während des Ladens
+          disabled={loading}
         >
           {loading ? 'Speichern...' : 'Speichern'}
         </button>

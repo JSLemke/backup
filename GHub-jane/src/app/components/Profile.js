@@ -1,65 +1,67 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import supabase from '../../utils/supabaseClient';
-import UserCard from './UserCard';
 
 export default function Profile() {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [nickname, setNickname] = useState('');
+  const [photoURL, setPhotoURL] = useState(''); 
+  const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (userError) {
-          throw new Error(`Fehler beim Abrufen des Benutzers: ${userError.message}`);
-        }
+      if (userError) {
+        console.error('Fehler beim Abrufen des Benutzers', userError.message);
+        return;
+      }
 
-        if (!user || !user.id) {
-          throw new Error('Benutzer-ID ist undefiniert oder Benutzer ist nicht angemeldet.');
-        }
-
-        // Abrufen der Benutzerdaten aus der Datenbank
+      if (user) {
         const { data, error } = await supabase
           .from('users')
-          .select('nickname, bio, email, photo_url')
+          .select('nickname, photo_url, email, bio')
           .eq('id', user.id)
           .single();
 
         if (error) {
-          throw new Error(`Fehler beim Abrufen der Benutzerdaten: ${error.message}`);
-        }
+          console.error('Fehler beim Abrufen der Benutzerdaten', error.message);
+        } else {
+          setNickname(data.nickname || '');
+          setEmail(data.email || '');
+          setBio(data.bio || '');
 
-        setUserData({
-          displayName: data.nickname || 'Kein Nickname',
-          photoURL: data.photo_url || '/default-profile.png',
-          email: data.email,
-          bio: data.bio || 'Keine Bio hinterlegt',
-        });
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+          if (data.photo_url) {
+            const { publicURL, error: urlError } = supabase
+              .storage
+              .from('profile-pictures')
+              .getPublicUrl(data.photo_url);
+
+            if (urlError) {
+              console.error('Fehler beim Abrufen der Bild-URL', urlError.message);
+            } else {
+              setPhotoURL(publicURL);
+            }
+          } else {
+            setPhotoURL('/default-profile.png'); // Fallback auf ein Standardbild
+          }
+        }
       }
     };
 
     fetchUserData();
   }, []);
 
-  if (loading) return <p>Lade Benutzerdaten...</p>;
-  if (error) return <p>Fehler: {error}</p>;
-
   return (
     <div className="profile p-8">
       <h1 className="text-3xl mb-4">Profil</h1>
-      {userData ? (
-        <UserCard user={userData} />
-      ) : (
-        <p>Keine Benutzerdaten gefunden.</p>
-      )}
+      <div className="space-y-4">
+        <img src={photoURL} alt="Profilbild" className="w-24 h-24 rounded-full object-cover" /> 
+        <div>
+          <p className="text-xl font-semibold">{nickname}</p>
+          <p>{email}</p>
+          <p>{bio}</p>
+        </div>
+      </div>
     </div>
   );
 }
