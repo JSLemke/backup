@@ -1,55 +1,79 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // Importiere useState und useEffect
+import React, { useState, useEffect } from 'react';
 import supabase from '../../utils/supabaseClient';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);  // Ladezustand hinzufügen
+  const [newTask, setNewTask] = useState('');
 
   useEffect(() => {
     const fetchTasks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching tasks:', error.message);
-        } else {
-          setTasks(data);
-        }
-      } catch (error) {
-        console.error('Unexpected error fetching tasks:', error);
-      } finally {
-        setLoading(false);  // Ladezustand deaktivieren
-      }
+      if (error) console.error('Error fetching tasks:', error.message);
+      else setTasks(data);
     };
 
     fetchTasks();
   }, []);
 
-  if (loading) {
-    return <p>Lade Aufgaben...</p>;  // Ladeanzeige
-  }
+  const addTask = async () => {
+    if (newTask.trim()) {
+      const { error } = await supabase
+        .from('tasks')
+        .insert([{ content: newTask, created_at: new Date() }]);
+
+      if (error) {
+        console.error('Error adding task:', error.message);
+      } else {
+        setNewTask('');
+        await fetchTasks(); // Tasks nach Einfügen neu laden
+      }
+    }
+  };
+
+  const deleteTask = async (taskId) => {
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId);
+
+    if (error) console.error('Error deleting task:', error.message);
+    await fetchTasks();
+  };
 
   return (
-    <div>
-  <div id="myDIV" className="header">
-    <h2>My To Do List</h2>
-    <input type="text" id="myInput" placeholder="Title..." />
-    <span onClick={newElement} className="addBtn">Add</span>
-  </div>
-
-  <ul id="myUL">
-    <li>Hit the gym</li>
-    <li className="checked">Pay bills</li>
-    <li>Meet George</li>
-    <li>Buy eggs</li>
-    <li>Read a book</li>
-    <li>Organize office</li>
-  </ul>
-</div>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Task List</h2>
+      <div className="mb-4">
+        <input
+          type="text"
+          value={newTask}
+          onChange={(e) => setNewTask(e.target.value)}
+          className="p-2 border rounded w-full"
+          placeholder="New Task"
+        />
+        <button onClick={addTask} className="bg-blue-500 text-white p-2 rounded mt-2">
+          Add Task
+        </button>
+      </div>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id} className="flex justify-between mb-2">
+            <span>{task.content}</span>
+            <button
+              onClick={() => deleteTask(task.id)}
+              className="text-red-500"
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

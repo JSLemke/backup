@@ -33,6 +33,7 @@ export default function FamilyDashboard() {
         } else {
           if (data && data.familyCode) {
             setFamilyCode(data.familyCode);
+            await addToFamilyTable(user.id, data.familyCode); // Füge den Benutzer zur Familien-Tabelle hinzu
           } else {
             console.warn('Kein Familiencode gefunden.');
           }
@@ -42,6 +43,35 @@ export default function FamilyDashboard() {
 
     fetchFamilyCode();
   }, []);
+
+  const addToFamilyTable = async (userId, familyCode) => {
+    // Abrufen der aktuellen Mitgliederliste
+    const { data: family, error: fetchError } = await supabase
+      .from('families')
+      .select('members')
+      .eq('familyCode', familyCode)
+      .single();
+
+    if (fetchError) {
+      console.error('Fehler beim Abrufen der Familienmitglieder', fetchError.message);
+      return;
+    }
+
+    // Hinzufügen des neuen Mitglieds zur Mitgliederliste
+    const updatedMembers = [...(family.members || []), userId];
+
+    // Aktualisieren der Mitgliederliste in der Datenbank
+    const { error: updateError } = await supabase
+      .from('families')
+      .update({ members: updatedMembers })
+      .eq('familyCode', familyCode);
+
+    if (updateError) {
+      console.error('Fehler beim Hinzufügen des Benutzers zur Familien-Tabelle:', updateError.message);
+    } else {
+      console.log('Benutzer erfolgreich zur Familien-Tabelle hinzugefügt.');
+    }
+  };
 
   return (
     <div className="family-dashboard p-8">

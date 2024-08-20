@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import supabase from '../../utils/supabaseClient';
 import Picker from 'emoji-picker-react';
 
@@ -7,60 +9,37 @@ export default function ChatPage({ receiverId }) {
   const [newMessage, setNewMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userId, setUserId] = useState(null);
-  const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Benutzer-ID abrufen und setzen
     const fetchUserId = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Fehler beim Abrufen der Benutzer-ID:', error.message);
-      } else if (user) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         setUserId(user.id);
-        console.log('User ID:', user.id);
-      } else {
-        console.error('Benutzer nicht angemeldet');
       }
     };
 
     fetchUserId();
 
-    if (!receiverId) {
-      console.error('Receiver ID is undefined');
-      return;
-    }
-
     const fetchMessages = async () => {
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          id,
-          content,
-          created_at,
-          sender:sender_id (id, username),
-          receiver:receiver_id (id, username)
-        `)
-        .eq('receiver_id', receiverId)
-        .order('created_at', { ascending: true });
+        .select('*')
+        .order('created_at', { ascending: true })
+        .eq('receiver_id', receiverId);
 
       if (error) {
         console.error('Fehler beim Abrufen der Nachrichten:', error.message);
       } else {
-        console.log('Fetched Messages:', data);
         setMessages(data);
-        scrollToBottom(); // Zum Ende der Nachrichtenliste scrollen
       }
     };
 
     fetchMessages();
 
-    // Realtime subscription für neue Nachrichten
     const messageSubscription = supabase
       .channel('messages-channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        console.log('New message received:', payload.new);
         setMessages((prevMessages) => [...prevMessages, payload.new]);
-        scrollToBottom(); // Zum Ende der Nachrichtenliste scrollen
       })
       .subscribe();
 
@@ -69,35 +48,27 @@ export default function ChatPage({ receiverId }) {
     };
   }, [receiverId]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const handleSendMessage = async () => {
     if (newMessage.trim() && userId) {
-      const uuid = crypto.randomUUID(); // UUID für den Primärschlüssel generieren
-
       const { error } = await supabase
         .from('messages')
         .insert([{ 
-          id: uuid,
-          sender_id: userId,
-          receiver_id: receiverId,
+          sender_id: userId,  // Setze die sender_id auf die aktuelle Benutzer-ID
+          receiver_id: receiverId, // Die receiver_id wird als Prop übergeben
           content: newMessage,
-          created_at: new Date(),
+          created_at: new Date(), // created_at wird manuell gesetzt
         }]);
 
       if (error) {
         console.error('Fehler beim Senden der Nachricht:', error.message);
       } else {
-        console.log('Message sent:', newMessage);
-        setNewMessage('');
+        setNewMessage(''); // Nach dem Senden des Textes das Eingabefeld leeren
         setShowEmojiPicker(false);
       }
     }
   };
 
-  const handleEmojiClick = (emojiObject) => {
+  const handleEmojiClick = (event, emojiObject) => {
     setNewMessage((prevInput) => prevInput + emojiObject.emoji);
     setShowEmojiPicker(false);
   };
@@ -107,20 +78,14 @@ export default function ChatPage({ receiverId }) {
       <div className="chat-box h-96 overflow-y-scroll p-4">
         {messages.map((message) => (
           <div key={message.id} className="message mb-4 flex items-start">
-            <img 
-              src={'/default-avatar.png'} 
-              alt="Sender" 
-              className="w-10 h-10 rounded-full mr-3" 
-            />
             <div>
               <p className="text-sm font-semibold">
-                {message.sender?.username || 'Unknown User'}
+                {message.sender_id === userId ? 'You' : 'Other User'}
               </p>
               <p className="bg-gray-700 p-2 rounded-lg text-sm">{message.content}</p>
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
       <div className="mt-4 relative">
         <input

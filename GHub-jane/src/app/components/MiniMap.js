@@ -1,20 +1,44 @@
-// src/app/components/MiniMap.js
+'use client'; // Sicherstellen, dass dies nur im Client gerendert wird
 
-'use client';
+import React, { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css'; // Stelle sicher, dass die Leaflet CSS-Datei importiert wird
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+export default function GPSPage() {
+  const mapRef = useRef(null);
+  const [locationError, setLocationError] = useState(null);
 
-export default function MiniMap() {
-    const router = useRouter();
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Überprüfen, ob die Karte bereits existiert
+      if (mapRef.current) return;
 
-    return (
-        <div
-            className="p-4 bg-white rounded-lg shadow-md cursor-pointer"
-            onClick={() => router.push('/gps')}
-        >
-            <h2 className="text-xl font-bold mb-2">Minikarte</h2>
-            <div className="h-32 bg-gray-200">[Minimap Placeholder]</div>
-        </div>
-    );
+      // Initialisiere die Karte und speichere die Referenz
+      mapRef.current = L.map('gpsmap').setView([51.505, -0.09], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(mapRef.current);
+
+      // Marker auf den aktuellen Standort setzen
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          L.marker([latitude, longitude]).addTo(mapRef.current);
+          mapRef.current.setView([latitude, longitude], 13);
+        },
+        (error) => {
+          setLocationError('Fehler beim Abrufen des Standorts: ' + error.message);
+          console.error('Fehler beim Abrufen des Standorts', error);
+        }
+      );
+    }
+  }, []);
+
+  return (
+    <div>
+      {locationError && <p style={{ color: 'red' }}>{locationError}</p>}
+      <div id="gpsmap" style={{ height: '400px', width: '100%' }} />
+    </div>
+  );
 }

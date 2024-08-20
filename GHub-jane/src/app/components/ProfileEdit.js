@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import supabase from '../../utils/supabaseClient';
 
@@ -7,12 +9,11 @@ export default function ProfileEdit() {
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-
+      
       if (userError) {
         console.error('Fehler beim Abrufen des Benutzers', userError.message);
         return;
@@ -21,17 +22,17 @@ export default function ProfileEdit() {
       if (user) {
         const { data, error } = await supabase
           .from('users')
-          .select('nickname, photo_url, email, bio')
+          .select('*')
           .eq('id', user.id)
           .single();
-
+          
         if (error) {
           console.error('Benutzerdaten nicht gefunden', error.message);
         } else {
-          setNickname(data.nickname || '');
-          setPhotoURL(data.photo_url || '');
-          setEmail(data.email || '');
-          setBio(data.bio || '');
+          setNickname(data.nickname);
+          setPhotoURL(`${supabase.storageUrl}/profile-pictures/${data.photo_url}`);
+          setEmail(data.email);
+          setBio(data.bio);
         }
       }
     };
@@ -44,41 +45,26 @@ export default function ProfileEdit() {
   };
 
   const handleSave = async () => {
-    setLoading(true);
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-
+    
     if (userError) {
       console.error('Fehler beim Abrufen des Benutzers', userError.message);
-      setLoading(false);
       return;
     }
 
     let uploadedPhotoURL = photoURL;
 
     if (file) {
-      const fileName = `${user.id}/${file.name}`;
-      const { error: uploadError } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('profile-pictures')
-        .upload(fileName, file);
+        .upload(`public/${user.id}/${file.name}`, file);
 
-      if (uploadError) {
-        console.error('Fehler beim Hochladen des Bildes', uploadError.message);
-        setLoading(false);
+      if (error) {
+        console.error('Fehler beim Hochladen des Bildes', error.message);
         return;
       }
 
-      const { publicURL, error: urlError } = await supabase
-        .storage
-        .from('profile-pictures')
-        .getPublicUrl(fileName);
-
-      if (urlError) {
-        console.error('Fehler beim Abrufen der Bild-URL', urlError.message);
-        setLoading(false);
-        return;
-      }
-
-      uploadedPhotoURL = publicURL;
+      uploadedPhotoURL = `${supabase.storageUrl}/profile-pictures/public/${user.id}/${file.name}`;
     }
 
     if (user) {
@@ -88,18 +74,16 @@ export default function ProfileEdit() {
           nickname,
           photo_url: uploadedPhotoURL,
           email,
-          bio,
+          bio
         })
         .eq('id', user.id);
-
+        
       if (error) {
         console.error('Fehler beim Speichern des Profils', error.message);
       } else {
         alert('Profil erfolgreich aktualisiert');
-        setPhotoURL(uploadedPhotoURL);  // Aktualisiere die photoURL im Zustand
       }
     }
-    setLoading(false);
   };
 
   return (
@@ -139,9 +123,8 @@ export default function ProfileEdit() {
         <button
           onClick={handleSave}
           className="p-3 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={loading}
         >
-          {loading ? 'Speichern...' : 'Speichern'}
+          Speichern
         </button>
       </div>
     </div>
