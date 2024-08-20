@@ -1,57 +1,57 @@
-import supabase from './supabaseClient'; // Verwende den Supabase-Client aus supabaseClient.js
+import supabase from './supabaseClient';
 
-// Funktion zum Generieren und Zuordnen eines Familiencodes zu einem Benutzer
-export const generateAndAssignFamilyCode = async (userId, familyName) => {
-  const familyCode = `${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-  // Füge den neuen Familiencode zur families Tabelle hinzu
-  const { data: familyData, error: insertError } = await supabase
-    .from('families')
-    .insert({
-      familyCode: familyCode,
-      createdBy: userId,
-      createdAt: new Date(),
-      members: [userId], // Initial füge den Benutzer als Mitglied hinzu
-    });
-
-  if (insertError) {
-    throw new Error(`Error generating family code: ${insertError.message}`);
-  }
-
-  // Aktualisiere den Benutzer mit dem neuen Familiencode in der users Tabelle
-  const { error: updateUserError } = await supabase
-    .from('users')
-    .update({ familyCode: familyCode })
-    .eq('id', userId);
-
-  if (updateUserError) {
-    throw new Error(`Error updating user with family code: ${updateUserError.message}`);
-  }
-
-  return familyCode;
-};
-
-// Funktion zum Hinzufügen eines Benutzers zu einer existierenden Familie
-export const addUserToFamily = async (userId, familyCode) => {
-  // Füge den Benutzer zur members Liste der entsprechenden Familie hinzu
+// Funktion zum Erstellen einer neuen Familie
+export const createFamily = async (familyCode, userId) => {
   const { data, error } = await supabase
     .from('families')
-    .update({
-      members: supabase.raw('array_append(members, ?)', [userId])
-    })
+    .insert([
+      {
+        familyCode,
+        members: [userId],
+        createdBy: userId,
+      },
+    ]);
+
+  if (error) {
+    console.error('Fehler beim Erstellen der Familie:', error);
+    return null;
+  }
+
+  return data;
+};
+
+// Funktion zum Hinzufügen eines Benutzers zu einer bestehenden Familie
+export const addUserToFamily = async (familyCode, userId) => {
+  // Überprüfen, ob die Familie existiert
+  const { data: family, error: familyError } = await supabase
+    .from('families')
+    .select('members')
+    .eq('familyCode', familyCode)
+    .single();
+
+  if (familyError) {
+    console.error('Familie nicht gefunden:', familyError);
+    return null;
+  }
+
+  // Überprüfen, ob der Benutzer bereits Mitglied ist
+  if (family.members.includes(userId)) {
+    console.log('Benutzer ist bereits Mitglied der Familie.');
+    return family;
+  }
+
+  // Benutzer zur Mitgliederliste hinzufügen
+  const updatedMembers = [...family.members, userId];
+
+  const { data, error } = await supabase
+    .from('families')
+    .update({ members: updatedMembers })
     .eq('familyCode', familyCode);
 
   if (error) {
-    throw new Error(`Error adding user to family: ${error.message}`);
+    console.error('Fehler beim Hinzufügen des Benutzers zur Familie:', error);
+    return null;
   }
 
-  // Aktualisiere den Benutzer mit dem Familiencode in der users Tabelle
-  const { error: updateUserError } = await supabase
-    .from('users')
-    .update({ familyCode: familyCode })
-    .eq('id', userId);
-
-  if (updateUserError) {
-    throw new Error(`Error updating user with family code: ${updateUserError.message}`);
-  }
+  return data;
 };

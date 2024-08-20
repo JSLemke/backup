@@ -6,19 +6,23 @@ import supabase from '../../utils/supabaseClient';
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const fetchTasks = async () => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching tasks:', error.message);
+    } else {
+      setTasks(data);
+    }
+  };
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) console.error('Error fetching tasks:', error.message);
-      else setTasks(data);
-    };
-
-    fetchTasks();
+    fetchTasks(); // Load tasks on component mount
   }, []);
 
   const addTask = async () => {
@@ -30,8 +34,9 @@ export default function TasksPage() {
       if (error) {
         console.error('Error adding task:', error.message);
       } else {
-        setNewTask('');
-        await fetchTasks(); // Tasks nach Einfügen neu laden
+        setNewTask(''); // Clear the input field
+        setStatusMessage('Aufgabe erfolgreich hinzugefügt');
+        await fetchTasks(); // Reload tasks after adding new task
       }
     }
   };
@@ -43,7 +48,7 @@ export default function TasksPage() {
       .eq('id', taskId);
 
     if (error) console.error('Error deleting task:', error.message);
-    await fetchTasks();
+    await fetchTasks(); // Reload tasks after deletion
   };
 
   return (
@@ -62,17 +67,21 @@ export default function TasksPage() {
         </button>
       </div>
       <ul>
-        {tasks.map((task) => (
-          <li key={task.id} className="flex justify-between mb-2">
-            <span>{task.content}</span>
-            <button
-              onClick={() => deleteTask(task.id)}
-              className="text-red-500"
-            >
-              Delete
-            </button>
-          </li>
-        ))}
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <li key={task.id} className="flex justify-between mb-2">
+              <span>{task.content}</span>
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="text-red-500"
+              >
+                Delete
+              </button>
+            </li>
+          ))
+        ) : (
+          <p>Keine Aufgaben verfügbar</p>
+        )}
       </ul>
     </div>
   );

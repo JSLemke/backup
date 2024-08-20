@@ -33,7 +33,7 @@ export default function FamilyDashboard() {
         } else {
           if (data && data.familyCode) {
             setFamilyCode(data.familyCode);
-            await addToFamilyTable(user.id, data.familyCode); // Füge den Benutzer zur Familien-Tabelle hinzu
+            await addToFamilyTable(user.id, data.familyCode);
           } else {
             console.warn('Kein Familiencode gefunden.');
           }
@@ -45,7 +45,6 @@ export default function FamilyDashboard() {
   }, []);
 
   const addToFamilyTable = async (userId, familyCode) => {
-    // Abrufen der aktuellen Mitgliederliste
     const { data: family, error: fetchError } = await supabase
       .from('families')
       .select('members')
@@ -57,10 +56,8 @@ export default function FamilyDashboard() {
       return;
     }
 
-    // Hinzufügen des neuen Mitglieds zur Mitgliederliste
     const updatedMembers = [...(family.members || []), userId];
 
-    // Aktualisieren der Mitgliederliste in der Datenbank
     const { error: updateError } = await supabase
       .from('families')
       .update({ members: updatedMembers })

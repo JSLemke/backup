@@ -1,44 +1,52 @@
-'use client'; // Sicherstellen, dass dies nur im Client gerendert wird
+'use client'; // Diese Zeile stellt sicher, dass der Code nur im Client gerendert wird
 
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css'; // Stelle sicher, dass die Leaflet CSS-Datei importiert wird
+import 'leaflet/dist/leaflet.css';
 
-export default function GPSPage() {
+export default function MiniMap() {
   const mapRef = useRef(null);
   const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
+    // Überprüfen, ob das `window`-Objekt verfügbar ist
     if (typeof window !== 'undefined') {
-      // Überprüfen, ob die Karte bereits existiert
-      if (mapRef.current) return;
+      if (mapRef.current === null) {
+        const map = L.map('minimap').setView([51.505, -0.09], 13); // Temporärer Startpunkt
 
-      // Initialisiere die Karte und speichere die Referenz
-      mapRef.current = L.map('gpsmap').setView([51.505, -0.09], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+        }).addTo(map);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-      }).addTo(mapRef.current);
+        // Versuche, den aktuellen Standort des Benutzers abzurufen
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              map.setView([latitude, longitude], 13);
 
-      // Marker auf den aktuellen Standort setzen
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          L.marker([latitude, longitude]).addTo(mapRef.current);
-          mapRef.current.setView([latitude, longitude], 13);
-        },
-        (error) => {
-          setLocationError('Fehler beim Abrufen des Standorts: ' + error.message);
-          console.error('Fehler beim Abrufen des Standorts', error);
+              L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('Du bist hier!')
+                .openPopup();
+            },
+            (error) => {
+              setLocationError('Fehler beim Abrufen des Standorts: ' + error.message);
+              console.error('Fehler beim Abrufen des Standorts', error);
+            }
+          );
+        } else {
+          setLocationError('Geolocation wird von diesem Browser nicht unterstützt.');
         }
-      );
+
+        mapRef.current = map;
+      }
     }
   }, []);
 
   return (
     <div>
       {locationError && <p style={{ color: 'red' }}>{locationError}</p>}
-      <div id="gpsmap" style={{ height: '400px', width: '100%' }} />
+      <div id="minimap" style={{ height: '500px', width: '100%' }} />
     </div>
   );
 }
