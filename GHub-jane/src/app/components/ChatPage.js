@@ -9,12 +9,23 @@ export default function ChatPage({ receiverId }) {
   const [newMessage, setNewMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [userData, setUserData] = useState({});
 
   useEffect(() => {
     const fetchUserId = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        const { data, error } = await supabase
+          .from('users')
+          .select('nickname, photo_url')
+          .eq('id', user.id)
+          .single();
+        if (data) {
+          setUserData(data);
+        } else {
+          console.error('Fehler beim Abrufen der Benutzerdaten:', error.message);
+        }
       }
     };
 
@@ -68,7 +79,7 @@ export default function ChatPage({ receiverId }) {
     }
   };
 
-  const handleEmojiClick = (event, emojiObject) => {
+  const handleEmojiClick = (emojiObject) => {
     setNewMessage((prevInput) => prevInput + emojiObject.emoji);
     setShowEmojiPicker(false);
   };
@@ -102,7 +113,7 @@ export default function ChatPage({ receiverId }) {
           😊
         </button>
         {showEmojiPicker && (
-          <div className="absolute bottom-12 right-0">
+          <div className="absolute bottom-12 right-0 z-10">
             <Picker onEmojiClick={handleEmojiClick} />
           </div>
         )}
