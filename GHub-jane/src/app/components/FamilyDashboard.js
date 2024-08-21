@@ -1,3 +1,4 @@
+// src/app/components/FamilyDashboard.js
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -11,17 +12,22 @@ import supabase from '../../utils/supabaseClient';
 
 export default function FamilyDashboard() {
   const [familyCode, setFamilyCode] = useState('');
+  const [userId, setUserId] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchFamilyCode = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
       if (userError) {
-        console.error('Fehler beim Abrufen des Benutzers', userError.message);
+        setError('Fehler beim Abrufen des Benutzers: ' + userError.message);
+        console.error(userError.message);
         return;
       }
 
       if (user) {
+        setUserId(user.id);
+
         const { data, error } = await supabase
           .from('users')
           .select('familyCode')
@@ -29,14 +35,13 @@ export default function FamilyDashboard() {
           .single();
 
         if (error) {
-          console.error('Fehler beim Abrufen des Familiencodes', error.message);
+          setError('Fehler beim Abrufen des Familiencodes: ' + error.message);
+          console.error(error.message);
+        } else if (data && data.familyCode) {
+          setFamilyCode(data.familyCode);
+          await addToFamilyTable(user.id, data.familyCode);
         } else {
-          if (data && data.familyCode) {
-            setFamilyCode(data.familyCode);
-            await addToFamilyTable(user.id, data.familyCode);
-          } else {
-            console.warn('Kein Familiencode gefunden.');
-          }
+          setError('Kein Familiencode gefunden.');
         }
       }
     };
@@ -48,23 +53,50 @@ export default function FamilyDashboard() {
     const { data: family, error: fetchError } = await supabase
       .from('families')
       .select('members')
-      .eq('familyCode', familyCode)
-      .single();
+      .eq('familycode', familyCode)
+      .maybeSingle();
 
     if (fetchError) {
-      console.error('Fehler beim Abrufen der Familienmitglieder', fetchError.message);
+      setError('Fehler beim Abrufen der Familienmitglieder: ' + fetchError.message);
+      console.error(fetchError.message);
       return;
     }
 
-    const updatedMembers = [...(family.members || []), userId];
+    if (!family) {
+      setError('Familie nicht gefunden oder es gibt mehr als eine Übereinstimmung.');
+      return;
+    }
+
+    let members = family?.members || [];
+
+    // Wenn members kein Array ist, versuche es zu konvertieren
+    if (typeof members === 'string') {
+      try {
+        members = JSON.parse(members);
+      } catch (parseError) {
+        setError('Fehler beim Parsen der Mitgliederliste: ' + parseError.message);
+        console.error(parseError.message);
+        return;
+      }
+    }
+
+    if (!Array.isArray(members)) {
+      setError('Fehler: Die Mitgliederliste ist kein gültiges Array.');
+      return;
+    }
+
+    if (!members.includes(userId)) {
+      members.push(userId);
+    }
 
     const { error: updateError } = await supabase
       .from('families')
-      .update({ members: updatedMembers })
-      .eq('familyCode', familyCode);
+      .update({ members: JSON.stringify(members) })  // Sicherstellen, dass es als JSON-Array gespeichert wird
+      .eq('familycode', familyCode);
 
     if (updateError) {
-      console.error('Fehler beim Hinzufügen des Benutzers zur Familien-Tabelle:', updateError.message);
+      setError('Fehler beim Hinzufügen des Benutzers zur Familien-Tabelle: ' + updateError.message);
+      console.error(updateError.message);
     } else {
       console.log('Benutzer erfolgreich zur Familien-Tabelle hinzugefügt.');
     }
@@ -73,6 +105,7 @@ export default function FamilyDashboard() {
   return (
     <div className="family-dashboard p-8">
       <h1 className="text-3xl mb-4">Familiendashboard</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <div className="bg-gray-100 p-4 mb-4 rounded flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Familie:</h2>

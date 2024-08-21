@@ -1,3 +1,4 @@
+// src/app/components/Register.js
 'use client';
 
 import { useState } from 'react';
@@ -32,11 +33,23 @@ export default function Register() {
         {
           id: user.id,
           email: user.email,
-          familyCode: generatedFamilyCode,
+          familycode: generatedFamilyCode, // Kleinbuchstaben wie in der Datenbank
           createdAt: new Date().toISOString(),
         },
       ]);
       if (docError) throw docError;
+
+      // Familie erstellen und Benutzer als Administrator hinzufügen
+      const { error: familyError } = await supabase.from('families').insert([
+        {
+          familycode: generatedFamilyCode,
+          createdby: user.id,
+          members: JSON.stringify({ [user.id]: true }),
+          createdat: new Date().toISOString(),
+        },
+      ]);
+
+      if (familyError) throw familyError;
 
       alert('User and family group created successfully');
       router.push('/dashboard');
@@ -86,22 +99,6 @@ export default function Register() {
             onChange={(e) => setFamilyName(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-700"
             required
-          />
-          <button
-            type="button"
-            onClick={() => setFamilyCode(`${familyName}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`)}
-            className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Familiencode generieren
-          </button>
-          <input
-            type="text"
-            placeholder="Generated Family Code"
-            value={familyCode}
-            onChange={(e) => setFamilyCode(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-silver-500"
-            required
-            disabled
           />
           <button
             type="submit"

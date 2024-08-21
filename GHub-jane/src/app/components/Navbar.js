@@ -2,12 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import supabase from '../../utils/supabaseClient';
+import supabase from '../../utils/supabaseClient';  // Verwende die bereits erstellte Instanz
 
 export default function Navbar() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
-  const [familyCode, setFamilyCode] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -21,18 +20,7 @@ export default function Navbar() {
 
         if (session) {
           const user = session.user;
-          const { data, error: userError } = await supabase
-            .from('users')
-            .select('nickname, familyCode')
-            .eq('id', user.id)
-            .single();
-
-          if (userError) {
-            console.error('Error fetching user data:', userError.message);
-          } else {
-            setUserName(data.nickname || user.email);
-            setFamilyCode(data.familyCode || 'N/A');
-          }
+          setUserName(user.email);
         } else {
           console.log('No user is logged in');
         }
@@ -49,13 +37,13 @@ export default function Navbar() {
     if (error) {
       console.error('Error logging out:', error.message);
     } else {
-      router.push('/');
+      router.push('/login');
     }
   };
 
   return (
     <nav className="bg-white p-4 shadow-md flex justify-between items-center">
-      <h1 className="text-xl font-bold">Willkommen, {userName} (Familie: {familyCode})</h1>
+      <h1 className="text-xl font-bold">Welcome, {userName || 'Guest'}</h1>
       <div className="flex items-center space-x-4">
         <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded">
           Logout

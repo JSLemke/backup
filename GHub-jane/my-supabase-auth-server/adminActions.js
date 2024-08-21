@@ -1,4 +1,4 @@
-import supabase from './supabase.js';  // Supabase-Client importieren
+import supabase from './supabase.js';
 
 const deleteUserById = async (uid) => {
   try {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { supabase } from './src/utils/supabaseClient';
+import supabase from './src/utils/supabaseClient';
 
 export async function middleware(req: NextRequest) {
     const token = req.headers.get('authorization')?.split('Bearer ')[1];

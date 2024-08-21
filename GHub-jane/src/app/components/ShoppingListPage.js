@@ -10,10 +10,9 @@ export default function ShoppingListPage() {
   const fetchItems = async () => {
     console.log('Fetching items...');
     const { data, error } = await supabase
-      .from('shoppinglist')  // Verwende den korrekten Tabellenname wie im Screenshot
+      .from('shoppinglist')
       .select('*')
       .order('created_at', { ascending: true });
-  
     if (error) {
       console.error('Error fetching shopping list:', error.message);
     } else {
@@ -21,10 +20,9 @@ export default function ShoppingListPage() {
       setItems(data);
     }
   };
-  
 
   useEffect(() => {
-    fetchItems(); // Load items on component mount
+    fetchItems();
   }, []);
 
   const addItem = async () => {
@@ -36,8 +34,8 @@ export default function ShoppingListPage() {
       if (error) {
         console.error('Error adding item:', error.message);
       } else {
-        setNewItem(''); // Clear the input field
-        await fetchItems(); // Reload items after adding new item
+        setNewItem('');
+        await fetchItems();
       }
     } else {
       console.log('New item is empty, not adding.');

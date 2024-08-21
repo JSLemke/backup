@@ -1,4 +1,4 @@
-'use client'; // Diese Zeile stellt sicher, dass der Code nur im Client gerendert wird
+'use client'; 
 
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
@@ -9,16 +9,14 @@ export default function MiniMap() {
   const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
-    // Überprüfen, ob das `window`-Objekt verfügbar ist
     if (typeof window !== 'undefined') {
       if (mapRef.current === null) {
-        const map = L.map('minimap').setView([51.505, -0.09], 13); // Temporärer Startpunkt
+        const map = L.map('minimap').setView([51.505, -0.09], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
         }).addTo(map);
 
-        // Versuche, den aktuellen Standort des Benutzers abzurufen
         if ('geolocation' in navigator) {
           navigator.geolocation.getCurrentPosition(
             (position) => {

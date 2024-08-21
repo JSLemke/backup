@@ -13,9 +13,10 @@ export default function CreateGroup() {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
 
-    const user = supabase.auth.user();
-    if (!user) {
-      console.error("User is not authenticated");
+    const { data: user, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error("User is not authenticated", authError.message);
+      setError(authError.message);
       return;
     }
 
@@ -24,21 +25,26 @@ export default function CreateGroup() {
       setFamilyCode(newFamilyCode);
 
       const groupData = {
-        groupName: groupName,
         familyCode: newFamilyCode,
         createdBy: user.id,
-        members: { [user.id]: true },
+        members: JSON.stringify({ [user.id]: true }), // JSON-Format für members
         createdAt: new Date(),
       };
 
       const { error } = await supabase.from('families').insert([groupData]);
-      if (error) throw error;
+      
+      // Prüfen ob die Einfügung erfolgreich war
+      if (error) {
+        console.error("Error inserting into families table:", error.message);
+        setError("Error creating family group: " + error.message);
+        return;
+      }
 
       alert(`Group created! Your family code is: ${newFamilyCode}`);
       router.push('/dashboard');
     } catch (error) {
-      console.error("Error writing to database:", error.message);
-      setError("Error creating family group: " + error.message);
+      console.error("Unhandled error:", error.message);
+      setError("Unhandled error: " + error.message);
     }
   };
 

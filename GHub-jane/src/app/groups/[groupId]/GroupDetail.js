@@ -15,7 +15,7 @@ export default function GroupDetail({ groupId }) {
   useEffect(() => {
     const fetchGroupData = async () => {
       const { data, error } = await supabase
-        .from('groups')
+        .from('families')
         .select('*')
         .eq('id', groupId)
         .single();
@@ -24,15 +24,18 @@ export default function GroupDetail({ groupId }) {
         console.error('Group not found', error.message);
         router.push('/');
       } else {
+        console.log('Fetched group:', data);  // Debugging Information
         setGroup(data);
       }
     };
 
-    const fetchUserData = () => {
-      const currentUser = supabase.auth.user();
-      if (currentUser) {
-        setUser(currentUser);
+    const fetchUserData = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('User not authenticated', error.message);
+        return;
       }
+      setUser(user);
     };
 
     fetchGroupData();
@@ -45,7 +48,7 @@ export default function GroupDetail({ groupId }) {
         .from('messages')
         .select('*')
         .eq('groupId', groupId)
-        .order('timestamp', { ascending: true });
+        .order('createdAt', { ascending: true });
 
       if (error) console.error('Error fetching messages:', error.message);
       else setMessages(data);
@@ -58,7 +61,7 @@ export default function GroupDetail({ groupId }) {
     if (newMessage.trim()) {
       const { error } = await supabase
         .from('messages')
-        .insert([{ text: newMessage, timestamp: new Date(), user: user.id, userName: user.email }]);
+        .insert([{ text: newMessage, createdAt: new Date(), user: user.id, groupId }]);
 
       if (error) console.error('Error sending message:', error.message);
       setNewMessage('');
@@ -68,8 +71,8 @@ export default function GroupDetail({ groupId }) {
   const handleJoinGroup = async () => {
     if (user) {
       const { error } = await supabase
-        .from('groups')
-        .update({ members: { ...group.members, [user.id]: true } })
+        .from('families')
+        .update({ members: JSON.stringify({ ...group.members, [user.id]: true }) })
         .eq('id', groupId);
 
       if (error) console.error('Error joining group:', error.message);
@@ -83,8 +86,8 @@ export default function GroupDetail({ groupId }) {
       delete newMembers[user.id];
 
       const { error } = await supabase
-        .from('groups')
-        .update({ members: newMembers })
+        .from('families')
+        .update({ members: JSON.stringify(newMembers) })
         .eq('id', groupId);
 
       if (error) console.error('Error leaving group:', error.message);
@@ -95,7 +98,6 @@ export default function GroupDetail({ groupId }) {
   return (
     <div>
       {/* Gruppen-UI hier */}
-      {/* Nachrichtenanzeige */}
       <div>
         {messages.map((message) => (
           <div key={message.id}>{message.text}</div>
