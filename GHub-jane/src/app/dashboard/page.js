@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import FamilyDashboard from '../components/FamilyDashboard';
 import Profile from '../components/Profile';
@@ -16,8 +16,17 @@ import Invite from '../components/Invite';
 
 export default function DashboardPage() {
     const [currentPage, setCurrentPage] = useState('home');
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const renderContent = () => {
+        if (!isClient) {
+            return <div>Lade...</div>; // Optional: Ein Platzhalter während des SSR
+        }
+
         switch (currentPage) {
             case 'profile':
                 return <Profile />;

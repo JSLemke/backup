@@ -1,15 +1,17 @@
-'use client'; 
+'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 export default function MiniMap() {
   const mapRef = useRef(null);
   const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const loadLeaflet = async () => {
+      // Dynamic import of Leaflet to avoid SSR issues
+      const L = (await import('leaflet')).default;
+      await import('leaflet/dist/leaflet.css');
+
       if (mapRef.current === null) {
         const map = L.map('minimap').setView([51.505, -0.09], 13);
 
@@ -38,6 +40,10 @@ export default function MiniMap() {
 
         mapRef.current = map;
       }
+    };
+
+    if (typeof window !== 'undefined') {
+      loadLeaflet();  // Load Leaflet only in the browser
     }
   }, []);
 

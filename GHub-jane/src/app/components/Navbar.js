@@ -43,7 +43,7 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white p-4 shadow-md flex justify-between items-center">
-      <h1 className="text-xl font-bold">Welcome, {userName || 'Guest'}</h1>
+      <h1 className="text-2xl font-bold">FamilyApp</h1>
       <div className="flex items-center space-x-4">
         <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded">
           Logout

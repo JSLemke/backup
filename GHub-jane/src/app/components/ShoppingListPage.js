@@ -6,40 +6,49 @@ import supabase from '../../utils/supabaseClient';
 export default function ShoppingListPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
 
   const fetchItems = async () => {
-    console.log('Fetching items...');
     const { data, error } = await supabase
       .from('shoppinglist')
       .select('*')
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
+
     if (error) {
       console.error('Error fetching shopping list:', error.message);
     } else {
-      console.log('Items fetched:', data);
       setItems(data);
     }
   };
 
   useEffect(() => {
-    fetchItems();
+    fetchItems(); // Load shopping list items on component mount
   }, []);
 
   const addItem = async () => {
     if (newItem.trim()) {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('shoppinglist')
-        .insert([{ item_name: newItem }]);
+        .insert([{ item_name: newItem, created_at: new Date() }]);
 
       if (error) {
         console.error('Error adding item:', error.message);
       } else {
-        setNewItem('');
-        await fetchItems();
+        setNewItem(''); // Clear the input field
+        setStatusMessage('Artikel erfolgreich hinzugefügt');
+        await fetchItems(); // Reload shopping list items after adding new item
       }
-    } else {
-      console.log('New item is empty, not adding.');
     }
+  };
+
+  const deleteItem = async (itemId) => {
+    const { error } = await supabase
+      .from('shoppinglist')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) console.error('Error deleting item:', error.message);
+    await fetchItems(); // Reload shopping list items after deletion
   };
 
   return (
@@ -58,12 +67,23 @@ export default function ShoppingListPage() {
         </button>
       </div>
       <ul>
-        {items.map((item) => (
-          <li key={item.id} className="flex justify-between mb-2">
-            <span>{item.item_name}</span>
-          </li>
-        ))}
+        {items.length > 0 ? (
+          items.map((item) => (
+            <li key={item.id} className="flex justify-between mb-2">
+              <span>{item.item_name}</span>
+              <button
+                onClick={() => deleteItem(item.id)}
+                className="text-red-500"
+              >
+                Löschen
+              </button>
+            </li>
+          ))
+        ) : (
+          <p>Keine Artikel verfügbar</p>
+        )}
       </ul>
+      {statusMessage && <p>{statusMessage}</p>}
     </div>
   );
 }

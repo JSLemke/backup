@@ -6,26 +6,64 @@ import React, { useEffect, useState } from 'react';
 
 export default function WeatherWidget() {
     const [weather, setWeather] = useState(null);
-    const [location, setLocation] = useState('Berlin'); // Standard-Standort
+    const [location, setLocation] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetch(`https://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=${location}`)
-            .then(res => res.json())
-            .then(data => {
-                setWeather(data);
-            })
-            .catch(error => console.error('Error fetching weather data:', error));
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setLocation({ lat: latitude, lon: longitude });
+                },
+                (err) => {
+                    setError('Geolocation nicht verfügbar oder abgelehnt.');
+                    console.error('Error fetching location:', err);
+                }
+            );
+        } else {
+            setError('Geolocation wird von diesem Browser nicht unterstützt.');
+        }
+    }, []);
+
+    useEffect(() => {
+        if (location) {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current_weather=true`)
+                .then(res => res.json())
+                .then(data => {
+                    setWeather(data.current_weather);
+                })
+                .catch(error => console.error('Error fetching weather data:', error));
+        }
     }, [location]);
 
+    const getWeatherIcon = (code) => {
+        const weatherIcons = {
+            1: '☀️', // Clear sky
+            2: '🌤️', // Few clouds
+            3: '🌥️', // Scattered clouds
+            45: '🌫️', // Fog
+            48: '🌫️', // Fog
+            51: '🌧️', // Drizzle
+            61: '🌧️', // Rain
+            80: '🌦️', // Showers
+            95: '⛈️', // Thunderstorm
+            96: '⛈️', // Thunderstorm with hail
+            // Add more mappings based on weather codes
+        };
+
+        return weatherIcons[code] || '❓';
+    };
+
     return (
-        <div className="p-4 bg-white rounded-lg shadow-md">
+        <div className="p-4 bg-white rounded-lg shadow-md text-center">
             <h2 className="text-xl font-bold mb-2">Wetter</h2>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             {weather ? (
                 <div>
-                    <p className="text-lg font-semibold">{weather.location.name}</p>
-                    <p>{weather.current.condition.text}</p>
-                    <p>{weather.current.temp_c}°C</p>
-                    <img src={weather.current.condition.icon} alt="Wetter Icon" />
+                    <div className="text-5xl">{getWeatherIcon(weather.weathercode)}</div>
+                    <p className="text-lg font-semibold">{location.city}</p>
+                    <p className="text-3xl">{weather.temperature}°C</p>
                 </div>
             ) : (
                 <p>Lade Wetterdaten...</p>

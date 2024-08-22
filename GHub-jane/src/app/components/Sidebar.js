@@ -28,8 +28,8 @@ export default function Sidebar({ setCurrentPage }) {
                     Einkaufsliste
                 </a>
                 <a onClick={() => setCurrentPage('gps')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
-                    GPS
-                </a>
+                    LiveMap
+                                    </a>
                 <a onClick={() => setCurrentPage('settings')} className="block px-4 py-2 rounded hover:bg-gray-600 cursor-pointer">
                     Dashboard Bearbeiten
                 </a>

@@ -1,3 +1,5 @@
+'use client';
+
 import GroupDetail from './GroupDetail';
 
 const GroupDetailPage = ({ params }) => {

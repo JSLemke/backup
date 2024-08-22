@@ -3,7 +3,7 @@ import supabase from '../../utils/supabaseClient';
 
 export default function Profile() {
   const [nickname, setNickname] = useState('');
-  const [photoURL, setPhotoURL] = useState(''); 
+  const [photoURL, setPhotoURL] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
 
@@ -31,16 +31,7 @@ export default function Profile() {
           setBio(data.bio || '');
 
           if (data.photo_url) {
-            const { publicURL, error: urlError } = supabase
-              .storage
-              .from('profile-pictures')
-              .getPublicUrl(data.photo_url);
-
-            if (urlError) {
-              console.error('Fehler beim Abrufen der Bild-URL', urlError.message);
-            } else {
-              setPhotoURL(publicURL);
-            }
+            setPhotoURL(data.photo_url);
           } else {
             setPhotoURL('/default-profile.png'); // Fallback auf ein Standardbild
           }
@@ -55,7 +46,7 @@ export default function Profile() {
     <div className="profile p-8">
       <h1 className="text-3xl mb-4">Profil</h1>
       <div className="space-y-4">
-        <img src={photoURL} alt="Profilbild" className="w-24 h-24 rounded-full object-cover" /> 
+        <img src={photoURL} alt="Profilbild" className="w-24 h-24 rounded-full object-cover" />
         <div>
           <p className="text-xl font-semibold">{nickname}</p>
           <p>{email}</p>

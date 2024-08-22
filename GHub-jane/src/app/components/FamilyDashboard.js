@@ -7,7 +7,9 @@ import WeatherWidget from './WeatherWidget';
 import TasksPreview from './TasksPreview';
 import ShoppingListPreview from './ShoppingListPreview';
 import ChatIcon from './ChatIcon';
-import MiniMap from './MiniMap';
+import dynamic from 'next/dynamic';
+
+const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
 import supabase from '../../utils/supabaseClient';
 
 export default function FamilyDashboard() {
@@ -69,7 +71,6 @@ export default function FamilyDashboard() {
 
     let members = family?.members || [];
 
-    // Wenn members kein Array ist, versuche es zu konvertieren
     if (typeof members === 'string') {
       try {
         members = JSON.parse(members);
@@ -91,7 +92,7 @@ export default function FamilyDashboard() {
 
     const { error: updateError } = await supabase
       .from('families')
-      .update({ members: JSON.stringify(members) })  // Sicherstellen, dass es als JSON-Array gespeichert wird
+      .update({ members: JSON.stringify(members) })
       .eq('familycode', familyCode);
 
     if (updateError) {

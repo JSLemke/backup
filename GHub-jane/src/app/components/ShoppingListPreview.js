@@ -9,11 +9,14 @@ export default function ShoppingListPreview() {
   useEffect(() => {
     const fetchShoppingList = async () => {
       const { data, error } = await supabase
-        .from('shoppingList')
+        .from('shoppinglist')  // Beachte die Kleinschreibung
         .select('*');
 
-      if (error) console.error('Error fetching shopping list:', error.message);
-      else setItems(data);
+      if (error) {
+        console.error('Error fetching shopping list:', error.message);
+      } else {
+        setItems(data);
+      }
     };
 
     fetchShoppingList();
@@ -25,7 +28,7 @@ export default function ShoppingListPreview() {
       <ul>
         {items.slice(0, 3).map((item, index) => (
           <li key={index} className="mb-2">
-            {item.content}
+            {item.item_name} 
           </li>
         ))}
       </ul>
